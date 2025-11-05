@@ -11,9 +11,10 @@ python.exe .\PlotGen.py --class SMG --ttk 1HS
 ```
 
 **Assumptions:**
-    - Attachments does not modify damage falloffs.
-    - No more falloffs after 70+ meters.
-    - Weapon damage falloffs somewhat accurate, and even in case if not - weapon data still good enough to compare weapons inside this measurement system.
+
+- Attachments does not modify damage falloffs.
+- No more falloffs after 70+ meters.
+- Weapon damage falloffs somewhat accurate, and even in case if not - weapon data still good enough to compare weapons inside this measurement system.
 
 ## Plots
 
