@@ -51,21 +51,21 @@ class Weapon:
             self.DamageFalloffs.append(float(row[distance]))
 
     def TTK_AllBody(self):
-        ttk = []
+        ttks = []
         for damage in self.DamageFalloffs:
             body_shots = math.ceil(HEALTH / damage)
             ttk_body = (body_shots - 1) * self.ShotIntverval
-            ttk.append(ttk_body)
-        return ttk
+            ttks.append(ttk_body)
+        return ttks
 
     def TTK_1HS_Body(self):
-        ttk = []
+        ttks = []
         for damage in self.DamageFalloffs:
             remaining_health = HEALTH - (damage * self.HeadshotMultiplier)
             body_shots = math.ceil(remaining_health / damage)
-            ttk_body = (body_shots - 1 + 1) * self.ShotIntverval
-            ttk.append(ttk_body)
-        return ttk
+            ttk = (body_shots - 1 + 1) * self.ShotIntverval
+            ttks.append(ttk)
+        return ttks
 
 
 def read_weapon_stats():
