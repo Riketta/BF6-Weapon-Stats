@@ -62,8 +62,10 @@ class Weapon:
         ttks = []
         for damage in self.DamageFalloffs:
             remaining_health = HEALTH - (damage * self.HeadshotMultiplier)
+            total_shots = 1
             body_shots = math.ceil(remaining_health / damage)
-            ttk = (body_shots - 1 + 1) * self.ShotIntverval
+            total_shots += body_shots
+            ttk = (total_shots - 1) * self.ShotIntverval
             ttks.append(ttk)
         return ttks
 
