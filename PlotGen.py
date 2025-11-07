@@ -7,6 +7,7 @@ from itertools import cycle
 
 
 HEADSHOT_MULTIPLIER_OVERRIDE = None
+HEADSHOT_COUNT = 1
 HEALTH = 100
 STATS_FILE = "Stats.csv"
 DISTANCES = [
@@ -35,7 +36,7 @@ class WeaponClass(StrEnum):
 class TtkType(StrEnum):
     Unknown = "Unknown"
     Body = "Body"
-    SingleHS = "1HS"
+    HeadshotsAndBody = "HS"
 
 
 class Weapon:
@@ -58,11 +59,12 @@ class Weapon:
             ttks.append(ttk_body)
         return ttks
 
-    def TTK_1HS_Body(self):
+    def TTK_HS_Body(self, headshots=HEADSHOT_COUNT):
         ttks = []
         for damage in self.DamageFalloffs:
-            remaining_health = HEALTH - (damage * self.HeadshotMultiplier)
-            total_shots = 1
+            headshot_damage = damage * self.HeadshotMultiplier
+            remaining_health = HEALTH - (headshots * headshot_damage)
+            total_shots = headshots
             body_shots = math.ceil(remaining_health / damage)
             total_shots += body_shots
             ttk = (total_shots - 1) * self.ShotIntverval
@@ -143,9 +145,9 @@ def main():
     if ttk_model == TtkType.Body:
         y_strategy = Weapon.TTK_AllBody
         y_strategy_name = "All Body"
-    elif ttk_model == TtkType.SingleHS:
-        y_strategy = Weapon.TTK_1HS_Body
-        y_strategy_name = "1 HS + Body"
+    elif ttk_model == TtkType.HeadshotsAndBody:
+        y_strategy = Weapon.TTK_HS_Body
+        y_strategy_name = "{count} HS + Body".format(count=HEADSHOT_COUNT)
 
     plot(weapons_to_plot, y_strategy, strategy_name=y_strategy_name)
 
