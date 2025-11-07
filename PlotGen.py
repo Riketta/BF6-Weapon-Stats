@@ -60,7 +60,7 @@ class Weapon:
     def TTK_1HS_Body(self):
         ttk = []
         for damage in self.DamageFalloffs:
-            remaining_health = HEALTH - damage * self.HeadshotMultiplier
+            remaining_health = HEALTH - (damage * self.HeadshotMultiplier)
             body_shots = math.ceil(remaining_health / damage)
             ttk_body = (body_shots - 1 + 1) * self.ShotIntverval
             ttk.append(ttk_body)
