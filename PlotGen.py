@@ -6,6 +6,7 @@ from enum import StrEnum
 from itertools import cycle
 
 
+HEADSHOT_MULTIPLIER_OVERRIDE = None
 HEALTH = 100
 STATS_FILE = "Stats.csv"
 DISTANCES = [
@@ -41,7 +42,7 @@ class Weapon:
     def __init__(self, row):
         self.Name = row["Weapon"]
         self.Class = row["Class"]
-        self.HeadshotMultiplier = float(row["HS Mult"])
+        self.HeadshotMultiplier = HEADSHOT_MULTIPLIER_OVERRIDE or float(row["HS Mult"])
         self.RPM = int(row["RPM"])
         self.ShotIntverval = 60_000 / self.RPM
 
