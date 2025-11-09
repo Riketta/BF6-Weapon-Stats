@@ -24,8 +24,3 @@ python.exe .\PlotGen.py --class SMG --ttk 1HS
 ![TTK - All Body - Carbine](Plots/BF6_AllBody_Carbine.png)
 ![TTK - All Body - LMG](Plots/BF6_AllBody_LMG.png)
 ![TTK - All Body - SMG](Plots/BF6_AllBody_SMG.png)
-
-![TTK - Single Headshot - AR](Plots/BF6_1HS_AR.png)
-![TTK - Single Headshot - Carbine](Plots/BF6_1HS_Carbine.png)
-![TTK - Single Headshot - LMG](Plots/BF6_1HS_LMG.png)
-![TTK - Single Headshot - SMG](Plots/BF6_1HS_SMG.png)
