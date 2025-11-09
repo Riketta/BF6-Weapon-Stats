@@ -149,6 +149,7 @@ def main():
         y_strategy = Weapon.TTK_HS_Body
         y_strategy_name = "{count} HS + Body".format(count=HEADSHOT_COUNT)
 
+    y_strategy_name = "{health} HP & ".format(health=HEALTH) + y_strategy_name
     plot(weapons_to_plot, y_strategy, strategy_name=y_strategy_name)
 
 
