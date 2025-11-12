@@ -24,3 +24,5 @@ python.exe .\PlotGen.py --class SMG --ttk 1HS
 ![TTK - All Body - Carbine](Plots/BF6_AllBody_Carbine.png)
 ![TTK - All Body - LMG](Plots/BF6_AllBody_LMG.png)
 ![TTK - All Body - SMG](Plots/BF6_AllBody_SMG.png)
+![TTK - All Body - DMR](Plots/BF6_AllBody_DMR.png)
+![TTK - 1 HS + Body - DMR](Plots/BF6_1HS_DMR.png)

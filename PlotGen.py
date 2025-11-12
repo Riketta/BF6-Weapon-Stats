@@ -31,6 +31,7 @@ class WeaponClass(StrEnum):
     Carbine = "Carbine"
     SMG = "SMG"
     LMG = "LMG"
+    DMR = "DMR"
 
 
 class TtkType(StrEnum):
