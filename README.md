@@ -21,7 +21,7 @@ python.exe .\PlotGen.py --class SMG --ttk 1HS
 
 ## Plots
 
-All plots available at `Plots` folder.
+All plots are available in the `Plots` folder.
 
 ### Multiplayer
 
