@@ -20,9 +20,21 @@ python.exe .\PlotGen.py --class SMG --ttk 1HS
 
 ## Plots
 
-![TTK - All Body - AR](Plots/BF6_AllBody_AR.png)
-![TTK - All Body - Carbine](Plots/BF6_AllBody_Carbine.png)
-![TTK - All Body - LMG](Plots/BF6_AllBody_LMG.png)
-![TTK - All Body - SMG](Plots/BF6_AllBody_SMG.png)
-![TTK - All Body - DMR](Plots/BF6_AllBody_DMR.png)
-![TTK - 1 HS + Body - DMR](Plots/BF6_1HS_DMR.png)
+All plots available at `Plots` folder.
+
+### Multiplayer
+
+![TTK: MP - All Body - AR](Plots/BF6-MP-AllBody-AR.png)
+![TTK: MP - All Body - Carbine](Plots/BF6-MP-AllBody-Carbine.png)
+![TTK: MP - All Body - LMG](Plots/BF6-MP-AllBody-LMG.png)
+![TTK: MP - All Body - SMG](Plots/BF6-MP-AllBody-SMG.png)
+![TTK: MP - All Body - DMR](Plots/BF6-MP-AllBody-DMR.png)
+![TTK: MP - 1 HS + Body - DMR](Plots/BF6-MP-1Headshot-DMR.png)
+
+### Battle Royale
+
+![TTK: BR - All Body - AR](Plots/BF6-BR-AllBody-AR.png)
+![TTK: BR - All Body - Carbine](Plots/BF6-BR-AllBody-Carbine.png)
+![TTK: BR - All Body - LMG](Plots/BF6-BR-AllBody-LMG.png)
+![TTK: BR - All Body - SMG](Plots/BF6-BR-AllBody-SMG.png)
+![TTK: BR - All Body - DMR](Plots/BF6-BR-AllBody-DMR.png)

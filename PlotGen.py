@@ -5,10 +5,6 @@ import matplotlib.pyplot as plt
 from enum import StrEnum
 from itertools import cycle
 
-
-HEADSHOT_MULTIPLIER_OVERRIDE = None
-HEADSHOT_COUNT = 1
-HEALTH = 100
 STATS_FILE = "Stats.csv"
 DISTANCES = [
     "0 m",
@@ -37,40 +33,125 @@ class WeaponClass(StrEnum):
 class TtkType(StrEnum):
     Unknown = "Unknown"
     Body = "Body"
-    HeadshotsAndBody = "HS"
+    MissAndBody = "MissAndBody"
+    SingleHeadshotsAndBody = "1HS"
+
+
+class HealthProfileType(StrEnum):
+    Multiplayer = "MP"
+    Gauntlet = "Gauntlet"
+    BattleRoyale = "BR"
+
+
+class HealthProfile:
+    def __init__(self, name, health, plates, plate_health, plate_damage_reduction):
+        self.name = name
+
+        self.health = health
+        self.plates = plates
+        self.plate_health = plate_health
+        self.plate_damage_reduction = plate_damage_reduction
+
+
+HEALTH_PROFILES = {
+    HealthProfileType.Multiplayer: HealthProfile(
+        HealthProfileType.Multiplayer, 100, 0, 0, 0
+    ),
+    HealthProfileType.Gauntlet: HealthProfile(
+        HealthProfileType.Gauntlet, 100, 1, 40, 0
+    ),
+    HealthProfileType.BattleRoyale: HealthProfile(
+        HealthProfileType.BattleRoyale, 100, 2, 40, 0.2
+    ),
+}
 
 
 class Weapon:
     def __init__(self, row):
-        self.Name = row["Weapon"]
-        self.Class = row["Class"]
-        self.HeadshotMultiplier = HEADSHOT_MULTIPLIER_OVERRIDE or float(row["HS Mult"])
-        self.RPM = int(row["RPM"])
-        self.ShotIntverval = 60_000 / self.RPM
+        self.name = row["Weapon"]
+        self.weapon_class = row["Class"]
+        self.headshot_multiplier = float(row["HS Mult"])
+        self.rpm = int(row["RPM"])
+        self.shot_intverval = 60_000 / self.rpm
 
-        self.DamageFalloffs = []
+        self.damage_falloffs = []
         for distance in DISTANCES:
-            self.DamageFalloffs.append(float(row[distance]))
+            self.damage_falloffs.append(float(row[distance]))
 
-    def TTK_AllBody(self):
-        ttks = []
-        for damage in self.DamageFalloffs:
-            body_shots = math.ceil(HEALTH / damage)
-            ttk_body = (body_shots - 1) * self.ShotIntverval
-            ttks.append(ttk_body)
-        return ttks
 
-    def TTK_HS_Body(self, headshots=HEADSHOT_COUNT):
+class DamageProfile:
+    def __init__(self, name, headshots, headshot_multiplier_override=None, misses=0):
+        self.name = name
+
+        self.headshots = headshots
+        self.headshot_multiplier_override = headshot_multiplier_override
+        self.misses = misses
+
+
+DAMAGE_PROFILES = {
+    TtkType.SingleHeadshotsAndBody: DamageProfile("1 Headshot", 1),
+    TtkType.Body: DamageProfile("All Body", 0),
+    TtkType.MissAndBody: DamageProfile("All Body + 1 Miss", 0, misses=1),
+}
+
+
+class Preset:
+    def __init__(
+        self,
+        name,
+        health_profile,
+        damage_profile,
+        weapon_class=WeaponClass.All,
+    ):
+        self.name = name
+        self.health_profile = health_profile
+        self.damage_profile = damage_profile
+        self.weapon_class = weapon_class
+
+    def calc_ttk(self, weapon):
+        headshot_multiplier = (
+            self.damage_profile.headshot_multiplier_override
+            or weapon.headshot_multiplier
+        )
+
         ttks = []
-        for damage in self.DamageFalloffs:
-            headshot_damage = damage * self.HeadshotMultiplier
-            remaining_health = HEALTH - (headshots * headshot_damage)
-            total_shots = headshots
+        for damage in weapon.damage_falloffs:
+            headshot_damage = damage * headshot_multiplier
+
+            total_health = self.health_profile.health
+            total_shots = self.damage_profile.misses
+
+            # Calculate plate damage.
+            # TODO: somewhat accurate but tune it in future.
+            normalized_plate_health = self.health_profile.plate_health * (
+                1 + self.health_profile.plate_damage_reduction
+            )
+            total_health += normalized_plate_health * self.health_profile.plates
+
+            # Calculate headshots.
+            total_shots += self.damage_profile.headshots
+            remaining_health = total_health - (
+                self.damage_profile.headshots * headshot_damage
+            )
+
+            # Calculate body shots.
             body_shots = math.ceil(remaining_health / damage)
             total_shots += body_shots
-            ttk = (total_shots - 1) * self.ShotIntverval
+
+            # First shot happens instantly so have to exclude it.
+            ttk = (total_shots - 1) * weapon.shot_intverval
             ttks.append(ttk)
         return ttks
+
+    def description(self):
+        description = "{health_profile} ({health} HP, {plates} Plate(s)), {damage_profile}".format(
+            health_profile=self.health_profile.name,
+            health=self.health_profile.health,
+            plates=self.health_profile.plates,
+            damage_profile=self.damage_profile.name,
+        )
+
+        return description
 
 
 def read_weapon_stats():
@@ -84,28 +165,28 @@ def read_weapon_stats():
     return weapons
 
 
-def plot(weapons, y_strategy, strategy_name="Default", fixed_ticks=False):
+def plot(weapons, preset, fixed_ticks=False, show=True):
     plt.figure(figsize=(10, 6))
     line_styles = cycle([":", "-."])
     for weapon in weapons:
-        y = y_strategy(weapon)
+        y = preset.calc_ttk(weapon)
         # y.insert(0, y[0])
         y.append(y[-1])
         x = list(range(len(y)))
 
-        # plt.plot(x, y, marker="o", label=weapon.Name)
+        # plt.plot(x, y, marker="o", label=weapon.name)
         plt.step(
             x,
             y,
             where="post",
             marker="o",
-            label=weapon.Name,
+            label=weapon.name,
             linestyle=next(line_styles),
             alpha=0.75,
         )
     plt.title(
-        "BF6 Weapons - TTK ({strategy_name}) vs Distance".format(
-            strategy_name=strategy_name
+        "BF6 Weapons ({weapon_class}) - {description}".format(
+            weapon_class=preset.weapon_class, description=preset.description()
         )
     )
     plt.xlabel("Distance")
@@ -117,7 +198,8 @@ def plot(weapons, y_strategy, strategy_name="Default", fixed_ticks=False):
     plt.legend(fontsize=8, bbox_to_anchor=(1.02, 1), loc="upper left")
     # plt.grid(True, which="major", linestyle="--", linewidth=0.50, alpha=0.85)
     plt.tight_layout()
-    plt.show()
+    if show:
+        plt.show()
 
 
 def main():
@@ -126,32 +208,65 @@ def main():
         "-c", "--class", dest="weapon_class", default=WeaponClass.All
     )
     argparser.add_argument("-t", "--ttk", dest="ttk_model", default=TtkType.Body)
+    argparser.add_argument("-a", "--all", dest="generate_all", action="store_true")
     args = argparser.parse_args()
-
-    weapon_class = args.weapon_class
-    ttk_model = args.ttk_model
 
     all_weapons = read_weapon_stats()
 
-    weapons_to_plot = []
-    if weapon_class == WeaponClass.All:
-        weapons_to_plot = all_weapons
+    if args.generate_all:
+        for weapon_class in WeaponClass:
+            weapons_to_plot = []
+            if weapon_class == WeaponClass.All:
+                weapons_to_plot = all_weapons
+            else:
+                for weapon in all_weapons:
+                    if weapon.weapon_class == weapon_class:
+                        weapons_to_plot.append(weapon)
+
+            for health_profile in HEALTH_PROFILES.values():
+                for damage_profile in DAMAGE_PROFILES.values():
+                    preset = Preset("", health_profile, damage_profile, weapon_class)
+
+                    file_name = "Plots\\BF6-{health_profile}-{damage_profile}-{weapon_class}.png".format(
+                        health_profile=health_profile.name,
+                        damage_profile=damage_profile.name.replace(" ", "").replace(
+                            "+", "And"
+                        ),
+                        weapon_class=weapon_class,
+                    )
+                    print("Generating:", file_name)
+
+                    plot(
+                        weapons_to_plot,
+                        preset,
+                        show=False,
+                    )
+                    plt.savefig(file_name)
+                    plt.close()
+
     else:
-        for weapon in all_weapons:
-            if weapon.Class == weapon_class:
-                weapons_to_plot.append(weapon)
+        weapon_class = args.weapon_class
+        ttk_model = args.ttk_model
 
-    y_strategy = None
-    y_strategy_name = TtkType.Unknown
-    if ttk_model == TtkType.Body:
-        y_strategy = Weapon.TTK_AllBody
-        y_strategy_name = "All Body"
-    elif ttk_model == TtkType.HeadshotsAndBody:
-        y_strategy = Weapon.TTK_HS_Body
-        y_strategy_name = "{count} HS + Body".format(count=HEADSHOT_COUNT)
+        weapons_to_plot = []
+        if weapon_class == WeaponClass.All:
+            weapons_to_plot = all_weapons
+        else:
+            for weapon in all_weapons:
+                if weapon.weapon_class == weapon_class:
+                    weapons_to_plot.append(weapon)
 
-    y_strategy_name = "{health} HP & ".format(health=HEALTH) + y_strategy_name
-    plot(weapons_to_plot, y_strategy, strategy_name=y_strategy_name)
+        damage_profile_type = TtkType.Unknown
+        if ttk_model == TtkType.Body:
+            damage_profile_type = TtkType.Body
+        elif ttk_model == TtkType.SingleHeadshotsAndBody:
+            damage_profile_type = TtkType.SingleHeadshotsAndBody
+
+        health_profile = HEALTH_PROFILES[HealthProfileType.Multiplayer]
+        damage_profile = DAMAGE_PROFILES[damage_profile_type]
+        preset = Preset("", health_profile, damage_profile, weapon_class)
+
+        plot(weapons_to_plot, preset)
 
 
 if __name__ == "__main__":
