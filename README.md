@@ -23,6 +23,12 @@ python.exe .\PlotGen.py --class SMG --ttk 1HS
 
 All plots are available in the `Plots` folder.
 
+**Supported game modes:**
+
+- Multiplayer.
+- Battle Royale.
+- Gauntlet.
+
 ### Multiplayer
 
 ![TTK: MP - All Body - AR](Plots/BF6-MP-AllBody-AR.png)
