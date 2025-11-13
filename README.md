@@ -6,6 +6,7 @@
 
 ```powershell
 python.exe .\PlotGen.py
+python.exe .\PlotGen.py --all
 python.exe .\PlotGen.py --class LMG --ttk Body
 python.exe .\PlotGen.py --class SMG --ttk 1HS
 ```
