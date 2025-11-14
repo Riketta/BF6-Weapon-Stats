@@ -148,12 +148,27 @@ class Preset:
         return ttks
 
     def description(self):
-        description = "{health_profile} ({health} HP, {plates} Plate(s), {plate_damage_reduction}% Plate DR), {damage_profile}".format(
-            health_profile=self.health_profile.name,
-            health=self.health_profile.health,
-            plates=self.health_profile.plates,
-            plate_damage_reduction=self.health_profile.plate_damage_reduction * 100,
-            damage_profile=self.damage_profile.name,
+        health_profile = [
+            "{health} HP".format(health=self.health_profile.health),
+        ]
+        if self.health_profile.plates > 0:
+            health_profile.append(
+                "{plates} Plate(s)".format(plates=self.health_profile.plates)
+            )
+        if self.health_profile.plate_damage_reduction > 0:
+            health_profile.append(
+                "{plate_damage_reduction}% Plate DR".format(
+                    plate_damage_reduction=self.health_profile.plate_damage_reduction
+                    * 100
+                )
+            )
+
+        description = (
+            "{health_profile_name} ({health_profile}), {damage_profile}".format(
+                health_profile_name=self.health_profile.name,
+                health_profile=", ".join(health_profile),
+                damage_profile=self.damage_profile.name,
+            )
         )
 
         return description
