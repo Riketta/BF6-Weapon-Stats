@@ -125,11 +125,9 @@ class Preset:
             # Calculate plate damage.
             # TODO: somewhat accurate but tune it in future.
             scale = 100
-            dr_scaled = self.health_profile.plate_damage_reduction * scale
+            plate_dr_scaled = self.health_profile.plate_damage_reduction * scale
             effective_plate_health = (
-                self.health_profile.plate_health
-                * scale
-                / (scale - dr_scaled)
+                self.health_profile.plate_health * scale / (scale - plate_dr_scaled)
             )
             total_health += effective_plate_health * self.health_profile.plates
 
