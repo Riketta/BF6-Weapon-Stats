@@ -170,7 +170,7 @@ def read_weapon_stats():
     return weapons
 
 
-def plot(weapons, preset, fixed_ticks=False, show=True):
+def plot(weapons, preset, fixed_ticks=None, show=True):
     plt.figure(figsize=(10, 6))
     line_styles = cycle([":", "-."])
     for weapon in weapons:
@@ -199,7 +199,7 @@ def plot(weapons, preset, fixed_ticks=False, show=True):
     plt.xticks(range(len(DISTANCES)), DISTANCES, rotation=45)
     plt.ylabel("TTK (ms)")
     if fixed_ticks:
-        plt.yticks(range(50, 600, 50))
+        plt.yticks(fixed_ticks)
     plt.legend(fontsize=8, bbox_to_anchor=(1.02, 1), loc="upper left")
     # plt.grid(True, which="major", linestyle="--", linewidth=0.50, alpha=0.85)
     plt.tight_layout()
@@ -231,9 +231,20 @@ def main():
     argparser.add_argument("--hsmult", dest="headshot_multiplier", default=None)
     argparser.add_argument("--misses", dest="misses", default=None)
 
+    argparser.add_argument("--ymin", dest="y_tick_min", default=None)
+    argparser.add_argument("--ymax", dest="y_tick_max", default=600)
+    argparser.add_argument("--ystep", dest="y_tick_step", default=50)
+
     args = argparser.parse_args()
 
     all_weapons = read_weapon_stats()
+    y_ticks = None
+    if args.y_tick_min:
+        y_ticks = range(
+            int(args.y_tick_min),
+            args.y_tick_max and int(args.y_tick_max) or 600,
+            args.y_tick_step and int(args.y_tick_step) or 50,
+        )
 
     if args.generate_all:
         for weapon_class in WeaponClass:
@@ -262,6 +273,7 @@ def main():
                         weapons_to_plot,
                         preset,
                         show=False,
+                        fixed_ticks=y_ticks,
                     )
                     plt.savefig(file_name)
                     plt.close()
@@ -310,7 +322,11 @@ def main():
                 if weapon.weapon_class == weapon_class:
                     weapons_to_plot.append(weapon)
 
-        plot(weapons_to_plot, preset)
+        plot(
+            weapons_to_plot,
+            preset,
+            fixed_ticks=y_ticks,
+        )
 
 
 if __name__ == "__main__":
