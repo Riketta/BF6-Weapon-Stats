@@ -293,11 +293,8 @@ def main():
         health_profile.plate_health = (
             args.plate_health and int(args.plate_health) or health_profile.plate_health
         )
-        health_profile.plate_damage_reduction = (
-            args.plate_damage_reduction
-            and float(args.plate_damage_reduction)
-            or health_profile.plate_damage_reduction
-        )
+        if args.plate_damage_reduction is not None:
+            health_profile.plate_damage_reduction = float(args.plate_damage_reduction)
 
         damage_profile = DAMAGE_PROFILES[damage_profile_type]
         damage_profile.headshots = (
