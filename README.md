@@ -11,6 +11,7 @@ python.exe .\PlotGen.py --class LMG --damageprofile Body
 python.exe .\PlotGen.py --class DMR --damageprofile 1HS --healthprofile MP
 python.exe .\PlotGen.py --class SMG --damageprofile Body --healthprofile BR --plates 1
 python.exe .\PlotGen.py --class SMG --damageprofile Body --healthprofile BR --platedr 0.20 --ymin 400 --ymax 1500
+python.exe .\PlotGen.py --class SMG --damageprofile Body --healthprofile BR --platedr 0.25 --ymin 300 --ymax 1650 --ystep 100
 ```
 
 **Assumptions:**
