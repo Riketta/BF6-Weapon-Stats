@@ -124,10 +124,14 @@ class Preset:
 
             # Calculate plate damage.
             # TODO: somewhat accurate but tune it in future.
-            normalized_plate_health = self.health_profile.plate_health * (
-                1 + self.health_profile.plate_damage_reduction
+            scale = 100
+            dr_scaled = self.health_profile.plate_damage_reduction * scale
+            effective_plate_health = (
+                self.health_profile.plate_health
+                * scale
+                / (scale - dr_scaled)
             )
-            total_health += normalized_plate_health * self.health_profile.plates
+            total_health += effective_plate_health * self.health_profile.plates
 
             # Calculate headshots.
             total_shots += self.damage_profile.headshots
