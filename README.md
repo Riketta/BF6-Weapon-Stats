@@ -7,8 +7,9 @@
 ```powershell
 python.exe .\PlotGen.py
 python.exe .\PlotGen.py --all
-python.exe .\PlotGen.py --class LMG --ttk Body
-python.exe .\PlotGen.py --class SMG --ttk 1HS
+python.exe .\PlotGen.py --class LMG --damageprofile Body
+python.exe .\PlotGen.py --class DMR --damageprofile 1HS --healthprofile MP
+python.exe .\PlotGen.py --class SMG --damageprofile Body --healthprofile BR --plates 1
 ```
 
 **Assumptions:**

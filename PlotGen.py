@@ -30,10 +30,9 @@ class WeaponClass(StrEnum):
     DMR = "DMR"
 
 
-class TtkType(StrEnum):
-    Unknown = "Unknown"
+class DamageProfileType(StrEnum):
     Body = "Body"
-    MissAndBody = "MissAndBody"
+    SingleMissAndBody = "1Miss"
     SingleHeadshotsAndBody = "1HS"
 
 
@@ -89,9 +88,11 @@ class DamageProfile:
 
 
 DAMAGE_PROFILES = {
-    TtkType.SingleHeadshotsAndBody: DamageProfile("1 Headshot", 1),
-    TtkType.Body: DamageProfile("All Body", 0),
-    TtkType.MissAndBody: DamageProfile("All Body + 1 Miss", 0, misses=1),
+    DamageProfileType.SingleHeadshotsAndBody: DamageProfile("1 Headshot", 1),
+    DamageProfileType.Body: DamageProfile("All Body", 0),
+    DamageProfileType.SingleMissAndBody: DamageProfile(
+        "All Body + 1 Miss", 0, misses=1
+    ),
 }
 
 
@@ -204,11 +205,28 @@ def plot(weapons, preset, fixed_ticks=False, show=True):
 
 def main():
     argparser = argparse.ArgumentParser()
+    argparser.add_argument("-a", "--all", dest="generate_all", action="store_true")
     argparser.add_argument(
         "-c", "--class", dest="weapon_class", default=WeaponClass.All
     )
-    argparser.add_argument("-t", "--ttk", dest="ttk_model", default=TtkType.Body)
-    argparser.add_argument("-a", "--all", dest="generate_all", action="store_true")
+    argparser.add_argument(
+        "--healthprofile", dest="health_profile", default=HealthProfileType.Multiplayer
+    )
+    argparser.add_argument(
+        "--damageprofile", dest="damage_profile", default=DamageProfileType.Body
+    )
+
+    # Health Profile overrides.
+    argparser.add_argument("--health", dest="health", default=None)
+    argparser.add_argument("--plates", dest="plates", default=None)
+    argparser.add_argument("--plate_health", dest="plate_health", default=None)
+    argparser.add_argument("--platedr", dest="plate_damage_reduction", default=None)
+
+    # Damage Profile overrides.
+    argparser.add_argument("--headshots", dest="headshots", default=None)
+    argparser.add_argument("--hsmult", dest="headshot_multiplier", default=None)
+    argparser.add_argument("--misses", dest="misses", default=None)
+
     args = argparser.parse_args()
 
     all_weapons = read_weapon_stats()
@@ -246,7 +264,39 @@ def main():
 
     else:
         weapon_class = args.weapon_class
-        ttk_model = args.ttk_model
+        health_profile_type = args.health_profile or HealthProfileType.Multiplayer
+        damage_profile_type = args.damage_profile or DamageProfileType.Body
+
+        health_profile = HEALTH_PROFILES[health_profile_type]
+        health_profile.health = (
+            args.health and int(args.health) or health_profile.health
+        )
+        health_profile.plates = (
+            args.plates and int(args.plates) or health_profile.plates
+        )
+        health_profile.plate_health = (
+            args.plate_health and int(args.plate_health) or health_profile.plate_health
+        )
+        health_profile.plate_damage_reduction = (
+            args.plate_damage_reduction
+            and float(args.plate_damage_reduction)
+            or health_profile.plate_damage_reduction
+        )
+
+        damage_profile = DAMAGE_PROFILES[damage_profile_type]
+        damage_profile.headshots = (
+            args.headshots and int(args.headshots) or damage_profile.headshots
+        )
+        damage_profile.headshot_multiplier_override = (
+            args.headshot_multiplier
+            and float(args.headshot_multiplier)
+            or damage_profile.headshot_multiplier_override
+        )
+        damage_profile.misses = (
+            args.misses and int(args.misses) or damage_profile.misses
+        )
+
+        preset = Preset("", health_profile, damage_profile, weapon_class)
 
         weapons_to_plot = []
         if weapon_class == WeaponClass.All:
@@ -255,16 +305,6 @@ def main():
             for weapon in all_weapons:
                 if weapon.weapon_class == weapon_class:
                     weapons_to_plot.append(weapon)
-
-        damage_profile_type = TtkType.Unknown
-        if ttk_model == TtkType.Body:
-            damage_profile_type = TtkType.Body
-        elif ttk_model == TtkType.SingleHeadshotsAndBody:
-            damage_profile_type = TtkType.SingleHeadshotsAndBody
-
-        health_profile = HEALTH_PROFILES[HealthProfileType.Multiplayer]
-        damage_profile = DAMAGE_PROFILES[damage_profile_type]
-        preset = Preset("", health_profile, damage_profile, weapon_class)
 
         plot(weapons_to_plot, preset)
 
