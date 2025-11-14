@@ -38,6 +38,7 @@ All plots are available in the `Plots` folder.
 ![TTK: MP - All Body - SMG](Plots/BF6-MP-AllBody-SMG.png)
 ![TTK: MP - All Body - DMR](Plots/BF6-MP-AllBody-DMR.png)
 ![TTK: MP - 1 HS + Body - DMR](Plots/BF6-MP-1Headshot-DMR.png)
+![TTK: MP - All Body - Pistol](Plots/BF6-MP-AllBody-Pistol.png)
 
 ### Battle Royale
 
@@ -46,3 +47,4 @@ All plots are available in the `Plots` folder.
 ![TTK: BR - All Body - LMG](Plots/BF6-BR-AllBody-LMG.png)
 ![TTK: BR - All Body - SMG](Plots/BF6-BR-AllBody-SMG.png)
 ![TTK: BR - All Body - DMR](Plots/BF6-BR-AllBody-DMR.png)
+![TTK: BR - All Body - Pistol](Plots/BF6-BR-AllBody-Pistol.png)
