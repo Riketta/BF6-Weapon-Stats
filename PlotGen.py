@@ -28,6 +28,7 @@ class WeaponClass(StrEnum):
     SMG = "SMG"
     LMG = "LMG"
     DMR = "DMR"
+    Pistol = "Pistol"
 
 
 class DamageProfileType(StrEnum):
