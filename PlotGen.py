@@ -4,6 +4,7 @@ import csv
 import matplotlib.pyplot as plt
 from enum import StrEnum
 from itertools import cycle
+from typing import Any, Optional
 
 STATS_FILE = "Stats.csv"
 DISTANCES = [
@@ -44,7 +45,14 @@ class HealthProfileType(StrEnum):
 
 
 class HealthProfile:
-    def __init__(self, name, health, plates, plate_health, plate_damage_reduction):
+    def __init__(
+        self,
+        name: str,
+        health: int,
+        plates: int,
+        plate_health: int,
+        plate_damage_reduction: float,
+    ):
         self.name = name
 
         self.health = health
@@ -67,20 +75,26 @@ HEALTH_PROFILES = {
 
 
 class Weapon:
-    def __init__(self, row):
-        self.name = row["Weapon"]
-        self.weapon_class = row["Class"]
-        self.headshot_multiplier = float(row["HS Mult"])
-        self.rpm = int(row["RPM"])
-        self.shot_intverval = 60_000 / self.rpm
+    def __init__(self, row: dict[str, Any]):
+        self.name: str = row["Weapon"]
+        self.weapon_class: WeaponClass = row["Class"]
+        self.headshot_multiplier: float = float(row["HS Mult"])
+        self.rpm: int = int(row["RPM"])
+        self.shot_intverval: int = int(60_000 / self.rpm)
 
-        self.damage_falloffs = []
+        self.damage_falloffs: list[float] = []
         for distance in DISTANCES:
             self.damage_falloffs.append(float(row[distance]))
 
 
 class DamageProfile:
-    def __init__(self, name, headshots, headshot_multiplier_override=None, misses=0):
+    def __init__(
+        self,
+        name: str,
+        headshots: int,
+        headshot_multiplier_override: Optional[float] = None,
+        misses: int = 0,
+    ):
         self.name = name
 
         self.headshots = headshots
@@ -100,23 +114,23 @@ DAMAGE_PROFILES = {
 class Preset:
     def __init__(
         self,
-        name,
-        health_profile,
-        damage_profile,
-        weapon_class=WeaponClass.All,
+        name: str,
+        health_profile: HealthProfile,
+        damage_profile: DamageProfile,
+        weapon_class: WeaponClass = WeaponClass.All,
     ):
         self.name = name
         self.health_profile = health_profile
         self.damage_profile = damage_profile
         self.weapon_class = weapon_class
 
-    def calc_ttk(self, weapon):
+    def calc_ttk(self, weapon: Weapon):
         headshot_multiplier = (
             self.damage_profile.headshot_multiplier_override
             or weapon.headshot_multiplier
         )
 
-        ttks = []
+        ttks: list[int] = []
         for damage in weapon.damage_falloffs:
             headshot_damage = damage * headshot_multiplier
 
@@ -143,7 +157,7 @@ class Preset:
             total_shots += body_shots
 
             # First shot happens instantly so have to exclude it.
-            ttk = (total_shots - 1) * weapon.shot_intverval
+            ttk: int = (total_shots - 1) * weapon.shot_intverval
             ttks.append(ttk)
         return ttks
 
@@ -175,7 +189,7 @@ class Preset:
 
 
 def read_weapon_stats():
-    weapons = []
+    weapons: list[Weapon] = []
     with open(STATS_FILE) as csvfile:
         weapon_stats_reader = csv.DictReader(csvfile)
         for row in weapon_stats_reader:
@@ -185,7 +199,12 @@ def read_weapon_stats():
     return weapons
 
 
-def plot(weapons, preset, fixed_ticks=None, show=True):
+def plot(
+    weapons: list[Weapon],
+    preset: Preset,
+    fixed_ticks: Optional[range] = None,
+    show: bool = True,
+):
     plt.figure(figsize=(10, 6))
     line_styles = cycle([":", "-."])
     for weapon in weapons:
@@ -263,7 +282,7 @@ def main():
 
     if args.generate_all:
         for weapon_class in WeaponClass:
-            weapons_to_plot = []
+            weapons_to_plot: list[Weapon] = []
             if weapon_class == WeaponClass.All:
                 weapons_to_plot = all_weapons
             else:
