@@ -6,12 +6,16 @@
 
 ```powershell
 python.exe .\PlotGen.py
+python.exe .\PlotGen.py -h
 python.exe .\PlotGen.py --all
-python.exe .\PlotGen.py --class LMG --damageprofile Body
-python.exe .\PlotGen.py --class DMR --damageprofile 1HS --healthprofile MP
-python.exe .\PlotGen.py --class SMG --damageprofile Body --healthprofile BR --plates 1
-python.exe .\PlotGen.py --class SMG --damageprofile Body --healthprofile BR --platedr 0.20 --ymin 400 --ymax 1500
-python.exe .\PlotGen.py --class SMG --damageprofile Body --healthprofile BR --platedr 0.25 --ymin 300 --ymax 1650 --ystep 100
+python.exe .\PlotGen.py --class Carbine --plot-type Shots
+python.exe .\PlotGen.py --class Carbine --plot-type Shots --evenly-spaces-ranges
+python.exe .\PlotGen.py --class LMG --damage-profile Body
+python.exe .\PlotGen.py --class DMR --damage-profile 1HS --health-profile MP
+python.exe .\PlotGen.py --class SMG --damage-profile Body --health-profile BR --plates 1
+python.exe .\PlotGen.py --class SMG --damage-profile Body --health-profile BR --platedr 0.20 --ymin 400 --ymax 1500
+python.exe .\PlotGen.py --class SMG --damage-profile Body --health-profile BR --platedr 0.25 --ymin 300 --ymax 1650 --ystep 100
+python.exe .\PlotGen.py --class AR --evenly-spaces-ranges
 ```
 
 **Assumptions:**

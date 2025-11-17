@@ -7,19 +7,19 @@ from itertools import cycle
 from typing import Any, Optional
 
 STATS_FILE = "Stats.csv"
-DISTANCES = [
-    "0 m",
-    "10 m",
-    # "15 m",  # Same as previous.
-    "20 m",
-    # "25 m",  # Same as previous.
-    # "35 m",  # Same as previous.
-    "40 m",
-    # "50 m",  # Same as previous.
-    # "55 m",  # Same as previous.
-    # "70 m",  # Same as previous.
-    "70+ m",
-]
+RANGES = {
+    "0 m": 0,
+    "10 m": 10,
+    # "15 m": 15,  # Same as previous.
+    "20 m": 20,
+    # "25 m": 25,  # Same as previous.
+    # "35 m": 35,  # Same as previous.
+    "40 m": 40,
+    # "50 m": 50,  # Same as previous.
+    # "55 m": 55,  # Same as previous.
+    # "70 m": 70,  # Same as previous.
+    "70+ m": 70,
+}
 
 
 class WeaponClass(StrEnum):
@@ -74,6 +74,13 @@ HEALTH_PROFILES = {
 }
 
 
+class FalloffDamage:
+    def __init__(self, damage: float, range: int, range_tag: str):
+        self.damage = damage
+        self.range = range
+        self.range_tag = range_tag
+
+
 class Weapon:
     def __init__(self, row: dict[str, Any]):
         self.name: str = row["Weapon"]
@@ -82,9 +89,18 @@ class Weapon:
         self.rpm: int = int(row["RPM"])
         self.shot_intverval: int = int(60_000 / self.rpm)
 
-        self.damage_falloffs: list[float] = []
-        for distance in DISTANCES:
-            self.damage_falloffs.append(float(row[distance]))
+        self.damage_falloffs: list[FalloffDamage] = []
+        for range_tag, range in RANGES.items():
+            self.damage_falloffs.append(
+                FalloffDamage(float(row[range_tag]), range, range_tag)
+            )
+
+        last_damage_falloff = self.damage_falloffs[-1]
+        self.damage_falloffs.append(
+            FalloffDamage(
+                last_damage_falloff.damage, int(last_damage_falloff.range + 15), ""
+            )
+        )
 
 
 class DamageProfile:
@@ -111,6 +127,18 @@ DAMAGE_PROFILES = {
 }
 
 
+class WeaponRangeDamageStats:
+    def __init__(
+        self,
+        ttk: int,
+        shots: int,
+        range: int,
+    ):
+        self.TTK = ttk
+        self.Shots = shots
+        self.Range = range
+
+
 class Preset:
     def __init__(
         self,
@@ -130,8 +158,9 @@ class Preset:
             or weapon.headshot_multiplier
         )
 
-        ttks: list[int] = []
-        for damage in weapon.damage_falloffs:
+        weapon_damage_stats_per_range: list[WeaponRangeDamageStats] = []
+        for falloff_damage in weapon.damage_falloffs:
+            damage = falloff_damage.damage
             headshot_damage = damage * headshot_multiplier
 
             total_health = self.health_profile.health
@@ -158,8 +187,13 @@ class Preset:
 
             # First shot happens instantly so have to exclude it.
             ttk: int = (total_shots - 1) * weapon.shot_intverval
-            ttks.append(ttk)
-        return ttks
+
+            range_damage_stats = WeaponRangeDamageStats(
+                ttk, total_shots, falloff_damage.range
+            )
+            weapon_damage_stats_per_range.append(range_damage_stats)
+
+        return weapon_damage_stats_per_range
 
     def description(self):
         health_profile = [
@@ -199,19 +233,34 @@ def read_weapon_stats():
     return weapons
 
 
+class PlotType(StrEnum):
+    TTK = "TTK"
+    Shots = "Shots"
+
+
 def plot(
     weapons: list[Weapon],
     preset: Preset,
+    plot_type: PlotType = PlotType.TTK,
     fixed_ticks: Optional[range] = None,
+    evenly_spaces_ranges: bool = False,
     show: bool = True,
 ):
     plt.figure(figsize=(10, 6))
     line_styles = cycle([":", "-."])
     for weapon in weapons:
-        y = preset.calc_ttk(weapon)
-        # y.insert(0, y[0])
-        y.append(y[-1])
-        x = list(range(len(y)))
+        weapon_damage_stats_per_range = preset.calc_ttk(weapon)
+        y = None
+        match plot_type:
+            case PlotType.TTK:
+                y = list(map(lambda value: value.TTK, weapon_damage_stats_per_range))
+            case PlotType.Shots:
+                y = list(map(lambda value: value.Shots, weapon_damage_stats_per_range))
+        x = (
+            list(range(len(y)))
+            if evenly_spaces_ranges
+            else list(map(lambda value: value.Range, weapon_damage_stats_per_range))
+        )
 
         # plt.plot(x, y, marker="o", label=weapon.name)
         plt.step(
@@ -223,14 +272,19 @@ def plot(
             linestyle=next(line_styles),
             alpha=0.75,
         )
+
     plt.title(
         "BF6 Weapons ({weapon_class}) - {description}".format(
             weapon_class=preset.weapon_class, description=preset.description()
         )
     )
     plt.xlabel("Distance")
-    # DISTANCES.insert(0, "")
-    plt.xticks(range(len(DISTANCES)), DISTANCES, rotation=45)
+    # RANGES.insert(0, "")
+    plt.xticks(
+        range(len(RANGES)) if evenly_spaces_ranges else list(RANGES.values()),
+        list(RANGES.keys()),
+        rotation=45,
+    )
     plt.ylabel("TTK (ms)")
     if fixed_ticks:
         plt.yticks(fixed_ticks)
@@ -243,16 +297,19 @@ def plot(
 
 def main():
     argparser = argparse.ArgumentParser()
-    argparser.add_argument("-a", "--all", dest="generate_all", action="store_true")
+    argparser.add_argument(
+        "-a", "--all", dest="generate_all", action="store_true", default=False
+    )
     argparser.add_argument(
         "-c", "--class", dest="weapon_class", default=WeaponClass.All
     )
     argparser.add_argument(
-        "--healthprofile", dest="health_profile", default=HealthProfileType.Multiplayer
+        "--health-profile", dest="health_profile", default=HealthProfileType.Multiplayer
     )
     argparser.add_argument(
-        "--damageprofile", dest="damage_profile", default=DamageProfileType.Body
+        "--damage-profile", dest="damage_profile", default=DamageProfileType.Body
     )
+    argparser.add_argument("--plot-type", dest="plot_type", default=PlotType.TTK)
 
     # Health Profile overrides.
     argparser.add_argument("--health", dest="health", default=None)
@@ -268,6 +325,12 @@ def main():
     argparser.add_argument("--ymin", dest="y_tick_min", default=None)
     argparser.add_argument("--ymax", dest="y_tick_max", default=600)
     argparser.add_argument("--ystep", dest="y_tick_step", default=50)
+    argparser.add_argument(
+        "--evenly-spaces-ranges",
+        dest="evenly_spaces_ranges",
+        action="store_true",
+        default=False,
+    )
 
     args = argparser.parse_args()
 
@@ -306,8 +369,10 @@ def main():
                     plot(
                         weapons_to_plot,
                         preset,
-                        show=False,
+                        plot_type=args.plot_type,
                         fixed_ticks=y_ticks,
+                        evenly_spaces_ranges=args.evenly_spaces_ranges,
+                        show=False,
                     )
                     plt.savefig(file_name)
                     plt.close()
@@ -356,7 +421,9 @@ def main():
         plot(
             weapons_to_plot,
             preset,
+            plot_type=args.plot_type,
             fixed_ticks=y_ticks,
+            evenly_spaces_ranges=args.evenly_spaces_ranges,
         )
 
 
