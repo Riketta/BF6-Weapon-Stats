@@ -8,6 +8,7 @@
 python.exe .\PlotGen.py
 python.exe .\PlotGen.py -h
 python.exe .\PlotGen.py --all
+python.exe .\PlotGen.py --weapons M433 B36A4 TR-7 AK4D "SG 553R" KV9 SCW-10
 python.exe .\PlotGen.py --class Carbine --plot-type Shots
 python.exe .\PlotGen.py --class Carbine --plot-type Shots --evenly-spaces-ranges
 python.exe .\PlotGen.py --class LMG --damage-profile Body

@@ -24,6 +24,7 @@ RANGES = {
 
 class WeaponClass(StrEnum):
     All = "All"
+    Specific = "Specific"
     AR = "AR"
     Carbine = "Carbine"
     SMG = "SMG"
@@ -300,6 +301,7 @@ def main():
     argparser.add_argument(
         "-a", "--all", dest="generate_all", action="store_true", default=False
     )
+    argparser.add_argument("-w", "--weapons", dest="weapons", nargs="+", default=None)
     argparser.add_argument(
         "-c", "--class", dest="weapon_class", default=WeaponClass.All
     )
@@ -378,7 +380,7 @@ def main():
                     plt.close()
 
     else:
-        weapon_class = args.weapon_class
+        weapon_class = WeaponClass.Specific if args.weapons else args.weapon_class
         health_profile_type = args.health_profile or HealthProfileType.Multiplayer
         damage_profile_type = args.damage_profile or DamageProfileType.Body
 
@@ -411,12 +413,17 @@ def main():
         preset = Preset("", health_profile, damage_profile, weapon_class)
 
         weapons_to_plot = []
-        if weapon_class == WeaponClass.All:
-            weapons_to_plot = all_weapons
-        else:
-            for weapon in all_weapons:
-                if weapon.weapon_class == weapon_class:
-                    weapons_to_plot.append(weapon)
+        match weapon_class:
+            case WeaponClass.All:
+                weapons_to_plot = all_weapons
+            case WeaponClass.Specific:
+                for weapon in all_weapons:
+                    if weapon.name in args.weapons:
+                        weapons_to_plot.append(weapon)
+            case _:
+                for weapon in all_weapons:
+                    if weapon.weapon_class == weapon_class:
+                        weapons_to_plot.append(weapon)
 
         plot(
             weapons_to_plot,
