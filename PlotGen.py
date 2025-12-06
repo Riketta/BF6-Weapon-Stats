@@ -348,12 +348,15 @@ def main():
     if args.generate_all:
         for weapon_class in WeaponClass:
             weapons_to_plot: list[Weapon] = []
-            if weapon_class == WeaponClass.All:
-                weapons_to_plot = all_weapons
-            else:
-                for weapon in all_weapons:
-                    if weapon.weapon_class == weapon_class:
-                        weapons_to_plot.append(weapon)
+            match weapon_class:
+                case WeaponClass.All:
+                    weapons_to_plot = all_weapons
+                case WeaponClass.Specific:
+                    continue
+                case _:
+                    for weapon in all_weapons:
+                        if weapon.weapon_class == weapon_class:
+                            weapons_to_plot.append(weapon)
 
             for health_profile in HEALTH_PROFILES.values():
                 for damage_profile in DAMAGE_PROFILES.values():
